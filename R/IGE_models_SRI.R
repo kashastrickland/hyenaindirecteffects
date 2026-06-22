@@ -15,7 +15,7 @@ library(rstan)
 library(ggplot2)
 library(tidybayes)
 
-setwd("~/Library/Mobile Documents/com~apple~CloudDocs/Hyenas/hyena_socselection/Analyses_git")
+setwd("/Users/kashastrickland/Documents/GitHub/hyenaindirecteffects")
 
 #load helper functions
 source("./R/functions.R")
@@ -35,7 +35,7 @@ stan_model_NB_Va <- stan_model(file = "R/stan/VA_hyenas.stan")
 ##run model sampling
 mod_stan_NB_Va <- sampling(stan_model_NB_Va, data = stan_dat_IGE_NB_HRO, cores=3,
                            chains=3, 
-                           iter = 10000, warmup = 2000, 
+                           iter = 30000, warmup = 2000, 
                            pars=c("b","shape","var_mother","var_by","var_clan","var_animal",
                                   "sd_mother","sd_by","sd_clan","sd_animal"))
 
@@ -172,7 +172,7 @@ subset_mods$model<-factor(subset_mods$model,levels=c("mod_stan_IGE_NB_VA_fullIGE
 ####plot everything
 p_colors<-RColorBrewer::brewer.pal(8,"Dark2")[3:8]
 
-pdf("var_compare_IESSmodels_SRI5_full.pdf",width=11,height=9)
+pdf("./tables_figures/Fig2.pdf",width=11,height=9)
 ggplot(subset_mods,aes(y=variable,x = sd,colour =model)) +
   geom_vline(xintercept=0,linetype=2,alpha=1/3,col="black",key_glyph = "path")+
   stat_pointinterval(position = position_dodge(0.7))+
@@ -181,7 +181,7 @@ ggplot(subset_mods,aes(y=variable,x = sd,colour =model)) +
   scale_color_manual(name="Model",breaks = c("mod_stan_NB_Va","mod_stan_NB_Vahrosocsim",
                                              "mod_stan_NB_VaIEHRO","mod_stan_IGE_NB_VA_fullIGE"),
                    labels=c("Additive genetic","Social similarity","IE","Full IGE"),values=p_colors)+
-  scale_y_discrete(labels=c("Indirect genetic","Indirect environment","Indirect effects (total)","Social covariance","Other environment (HRO)",
+  scale_y_discrete(labels=c("Indirect genetic","Indirect environment","Indirect effects (total)","Social covariance","Shared environment",
                             "Cohort","Clan","Maternal","Additive genetic"))+
   ylab("")+
   xlab(expression(V^~~~LRS))+
