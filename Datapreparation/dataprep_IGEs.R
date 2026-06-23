@@ -113,7 +113,7 @@ write.csv(net5,file="data/socialnetwork_5.csv")
 ## use the GBI to calculate an assymetric SRI network
 ## used to deal with different differences in lifespans
 
-SRI<-SRI_tmp(sightings=crater_sfD5)
+SRI<-SRI_tmp(sightings=crater_sfDT5)
 diag(SRI)<-1
 
 save(SRI,file="data/SRI_temporal5.R")
@@ -186,17 +186,17 @@ class(uddf)<-"estUDm"
 ## calculate home range overlap
 ## ------------------------------------------------------------
 
-##going to use VI because its on a more interpretable scale for modelling 
+##g oing to use VI because its on a more interpretable scale for modelling 
 hro_VI<-kerneloverlaphr(uddf,method="VI",percent = 95)##using a volume intersection overlap index
 
-##check the overlap matrices to assess which might be most appropriate for modelling
+## check the overlap matrices to assess which might be most appropriate for modelling
 hro_VI2<-hro_VI
 corpcor::is.positive.definite(hro_VI2)
-hro_VI2[hro_VI2>1]<-1##standardise those that share all their home range (i.e. litter mates that die young)
-diag(hro_VI2)<-1.001##standardise the diagonal and add a little jitter to make sure its pos def
+hro_VI2[hro_VI2>1]<-1 ## standardise those that share all their home range (e.g., litter mates that die young)
+diag(hro_VI2)<-1.001 ## standardise the diagonal and add a little jitter to make sure its pos def
 corpcor::is.positive.definite(hro_VI2)
 
-##save UDs and hro matrix 
+## save UDs and hro matrix 
 save(uddf,file="data/uds.R")
 write.csv(hro_VI2,file="data/hro_VI_5.csv")
 
