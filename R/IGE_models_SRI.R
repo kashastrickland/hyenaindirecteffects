@@ -15,7 +15,7 @@ library(rstan)
 library(ggplot2)
 library(tidybayes)
 
-setwd("/Users/kashastrickland/Documents/GitHub/hyenaindirecteffects")
+setwd("/Users/kstrickl/Documents/GitHub/hyenaindirecteffects")
 
 #load helper functions
 source("./R/functions.R")
@@ -127,7 +127,7 @@ rstan::traceplot(mod_stan_IGE_NB_VA_fullIGE,
 ## Save all model outputs
 ## ------------------------------------------------------------
 save.image(file="./models/full_IGE_models_SRI.RData")
-
+load("./models/full_IGE_models_SRI.RData")
 
 ## ------------------------------------------------------------
 ## Plot variances
@@ -190,5 +190,46 @@ ggplot(subset_mods,aes(y=variable,x = sd,colour =model)) +
         legend.title.align=0.5)
 dev.off()
 
+## ------------------------------------------------------------
+## Table 1
+## ------------------------------------------------------------
+
+pars_df<-list()
+
+for(j in 1:length(models_list)){
+fullSum<-summary(models_list[[j]],probs=c(0.05,0.95))$summary[,c(1,4:5)]
+if (names(models_list[j])=="mod_stan_NB_Va") {
+  fixef<-fullSum[1:6,]
+  rownames(fixef)<-noquote(colnames(stan_dat_IGE_NB_HRO$X_min))
+} else {
+  fixef<-fullSum[1:7,]
+  rownames(fixef)<-noquote(colnames(stan_dat_IGE_NB_HRO$X))
+}
+ranef<-fullSum[grepl("var_",rownames(fullSum)),]
+shape<-fullSum[rownames(fullSum)%in%"shape",]
+if(grepl("IGE",names(models_list[j]))){
+  var_animal <- fullSum[rownames(fullSum)%in%"Sigma_A[1,1]",]
+  var_IGE <- fullSum[rownames(fullSum)%in%"Sigma_A[2,2]",]
+  ranef<-rbind(ranef,var_animal,var_IGE)
+}
+else{
+}
+pars<-as.data.frame(rbind(fixef,ranef,shape))
+pars$tab<-paste0(round(pars$mean,3)," (",round(pars$`5%`,3),"; ",round(pars$`95%`,3),")")
+pars_df[[j]]<-pars[4]
+}
+
+names(pars_df)<-names(models_list)
+
+pars_df %>%
+  map(rownames_to_column, 'rn') %>% 
+  bind_rows(.id = 'row.names') %>%
+  spread(row.names, tab) -> tab1
+
+tab1<-tab1[c(1:2,4:6,17,3,8:10,15,11,16,13,12,14),c(1,3,4,5,2)]
+colnames(tab1)<-c("Parameter","VA only","Social similarity","Indirect effects","Indirect Genetic Effects")
+
+write.csv(tab1,file="./tables_figures/table1.csv",row.names = FALSE)
 
 
+  
