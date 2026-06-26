@@ -2,8 +2,8 @@
 data {
   int<lower=1> N;  // total number of observations
   int<lower=0> Y[N]; // response variable
-  int<lower=1> K_min;  // number of predictors
-  matrix[N, K_min] X_min;  // population-level design matrix
+  int<lower=1> K;  // number of predictors
+  matrix[N, K] X;  // population-level design matrix
 
   int<lower=0> N_animal;             // number of individuals in pedigree
   int<lower=0> N_NoParents;
@@ -35,7 +35,7 @@ transformed data{
 }
 
 parameters {
-  vector[K_min] b;  // regression coefficients
+  vector[K] b;  // regression coefficients
   
   real<lower=0> shape;  // shape param for neg binomial
 
@@ -97,7 +97,7 @@ model {
   z_animal[ParentsNoOffspring] = z_A_ParentsNoOffspring ;
 
   mu = exp(
-      X_min * b +  
+      X * b +  
       r_mother[mother_id] + 
       r_by[by_id] + 
       r_clan[clan_id] + 

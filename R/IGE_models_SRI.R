@@ -8,6 +8,7 @@
 ## Load packages and set directory
 ## ------------------------------------------------------------
 
+library(tidyverse)
 library(MCMCglmm)
 library(nadiv)
 library(corpcor)
@@ -15,7 +16,7 @@ library(rstan)
 library(ggplot2)
 library(tidybayes)
 
-setwd("/Users/kstrickl/Documents/GitHub/hyenaindirecteffects")
+setwd("~/Documents/GitHub/hyenaindirecteffects")
 
 #load helper functions
 source("./R/functions.R")
@@ -198,13 +199,8 @@ pars_df<-list()
 
 for(j in 1:length(models_list)){
 fullSum<-summary(models_list[[j]],probs=c(0.05,0.95))$summary[,c(1,4:5)]
-if (names(models_list[j])=="mod_stan_NB_Va") {
   fixef<-fullSum[1:6,]
-  rownames(fixef)<-noquote(colnames(stan_dat_IGE_NB_HRO$X_min))
-} else {
-  fixef<-fullSum[1:7,]
   rownames(fixef)<-noquote(colnames(stan_dat_IGE_NB_HRO$X))
-}
 ranef<-fullSum[grepl("var_",rownames(fullSum)),]
 shape<-fullSum[rownames(fullSum)%in%"shape",]
 if(grepl("IGE",names(models_list[j]))){
@@ -226,7 +222,7 @@ pars_df %>%
   bind_rows(.id = 'row.names') %>%
   spread(row.names, tab) -> tab1
 
-tab1<-tab1[c(1:2,4:6,17,3,8:10,15,11,16,13,12,14),c(1,3,4,5,2)]
+tab1<-tab1[c(1:5,16,7:9,14,10,15,12,13,11),c(1,3,4,5,2)]
 colnames(tab1)<-c("Parameter","VA only","Social similarity","Indirect effects","Indirect Genetic Effects")
 
 write.csv(tab1,file="./tables_figures/table1.csv",row.names = FALSE)

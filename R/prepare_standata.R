@@ -4,7 +4,7 @@
 ## ------------------------------------------------------------
 
 data <- read.csv("data/lifehistory_clans.csv", stringsAsFactors = FALSE)
-ped  <- read.csv("data/hyenapedigree.csv", stringsAsFactors = FALSE)
+ped  <- read.csv("data/hyenapedigree.csv", stringsAsFactors = FALSE,row.names = 1)
 
 ## Make sure IDs are character
 data$ID     <- as.character(data$ID)
@@ -177,19 +177,9 @@ stopifnot(all(data2$ss_id <= nrow(socsim2)))
 ## Fixed-effect design matrix
 ## ------------------------------------------------------------
 
-##add in an effect of total strength
-data2$social_strength <- rowSums(social_DM)
-data2$degree <- rowSums(social_DM>0)
-
-##X for VA only model
-X_min <- model.matrix(
-  LRS ~ sex + mother_rank_ord + clan_size + f + X,
-  data = data2
-)
-
 ##create fixed effects matrix
 X <- model.matrix(
-  LRS ~ sex + mother_rank_ord + clan_size + f + X + degree,
+  LRS ~ sex + mother_rank_ord + clan_size + f + X,
   data = data2
 )
 
@@ -286,8 +276,6 @@ stan_dat_IGE_NB_HRO <- list(
   N = nrow(data2),
   Y = Y,
   K = ncol(X),
-  K_min = ncol(X_min),
-  X_min = X_min,
   X = X,
   
   ## Pedigree/animal effect data
