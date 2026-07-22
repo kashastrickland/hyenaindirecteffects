@@ -20,12 +20,13 @@ run_one_sim_and_fit <- function(i) {
     hro_effects<-t(chol(hro2)) %*% rnorm(nrow(hro2),0,random_draw[i,"sd_hro"])
     ## name by rownames
     names(hro_effects) <- rownames(stan_dat_IGE_NB_HRO$hro)
-    hro_eta <- hro_effects[as.character(data2$ID)]
-    
+
     ## ----------------------------
     ## Genetic effects
     ## ----------------------------
-    genetic_effects <- MCMCglmm::rbv(ped_IGE,diag(c(random_draw[i, "Sigma_A[1,1]"],random_draw[i, "Sigma_A[2,2]"])))
+    Sigma_A <- matrix(c(random_draw[i, "Sigma_A[1,1]"],random_draw[i, "Sigma_A[1,2]"],
+                        random_draw[i, "Sigma_A[2,1]"],random_draw[i, "Sigma_A[2,2]"]),nrow = 2,byrow = TRUE)
+    genetic_effects <- MCMCglmm::rbv(ped_IGE, Sigma_A)
     genetic_effects <- as.matrix(genetic_effects)
     colnames(genetic_effects) <- c("direct_genetic", "indirect_genetic")
     rownames(genetic_effects) <- as.character(rownames(genetic_effects))
@@ -57,16 +58,47 @@ run_one_sim_and_fit <- function(i) {
     indirect_effects <- rnorm(ncol(social_DM),mean = 0,sd = random_draw[i, "sd_indirectE"])
     names(indirect_effects) <- colnames(social_DM)
     
+    ## Check indexing
+    ## Check indexing
+    id <- as.character(data2$ID)
+    mother <- as.character(data2$mother)
+    birth_year <- as.character(data2$birth_year)
+    birth_clan <- as.character(data2$birth_clan)
+    social_ids <- as.character(colnames(social_DM))
+    hro_id <- as.character(data2$hro_id)
+    
+    ## stop if indexing not working
+    stopifnot(nrow(X) == nrow(data2))
+    stopifnot(nrow(social_DM) == nrow(data2))
+    stopifnot(length(beta) == ncol(X))
+    
+    stopifnot(all(id %in% rownames(genetic_effects)))
+    stopifnot(all(mother %in% names(mother_effects)))
+    stopifnot(all(birth_year %in% names(cohort_effects)))
+    stopifnot(all(birth_clan %in% names(clan_effects)))
+    stopifnot(all(social_ids %in% rownames(genetic_effects)))
+    stopifnot(all(social_ids %in% names(indirect_effects)))
+    
+    ## Indirect effects
+    indirect_total <- indirect_effects[social_ids] +
+      genetic_effects[social_ids, "indirect_genetic"]
+    
+    indirect_eta <- as.numeric(social_DM %*% indirect_total)
+    hro_eta <- hro_effects[id]
+    
     ## ----------------------------
     ## Linear predictor
     ## ----------------------------
     
     eta <- as.numeric(
-        (X %*% beta) +
-        genetic_effects[data2$ID, 1] +  
-        mother_effects[data2$mother] + 
-        (social_DM %*% (indirect_effects + genetic_effects[colnames(social_DM), 2])) + 
-        hro_effects[data2$hro_id])
+      (X %*% beta) +
+        genetic_effects[id, "direct_genetic"] +
+        mother_effects[mother] +
+        cohort_effects[birth_year] +
+        clan_effects[birth_clan] +
+        indirect_eta +
+        hro_eta
+    )
     
     ## ----------------------------
     ## Negative binomial simulation
@@ -76,11 +108,9 @@ run_one_sim_and_fit <- function(i) {
     
     theta <- random_draw[i, "shape"]
     
-    y <- rnbinom(
-      n = nrow(data2),
+    y <- rnbinom(n = nrow(data2),
       mu = mu,
-      size = theta
-    )
+      size = theta)
     
     ## ----------------------------
     ## Local Stan data object
