@@ -105,7 +105,7 @@ gbi<-get_gbi(crater_sfDT5,
 ## NB: not used for analysis
 net5<-get_network(gbi,
                  data_format = "GBI",
-                 association_index = "HWI")
+                 association_index = "SRI")
 
 save(net5,file="data/net5.R")
 write.csv(net5,file="data/socialnetwork_5.csv")
@@ -315,3 +315,193 @@ lifehistory_clanIDs2<-left_join(lifehistory_clanIDs,pedHc[c("ID","X")])
 ## save dataset
 write.csv(lifehistory_clanIDs2,file="data/lifehistory_clans.csv",row.names = FALSE)
 
+## PLOT
+net5_lh<-net5[rownames(net5)%in%lifehistory_clanIDs2$ID,colnames(net5)%in%lifehistory_clanIDs2$ID]
+net5_lh_gr <- graph_from_adjacency_matrix(
+  as.matrix(net5_lh),
+  mode = "undirected",
+  weighted = TRUE,
+  diag = FALSE
+)
+
+net5_lh_gr <- delete_vertices(net5_lh_gr, degree(net5_lh_gr) == 0)
+
+set.seed(123)
+l <- layout_with_fr(net5_lh_gr)
+
+plot(
+  net5_lh_gr,
+  layout = l,
+  vertex.size = 2,
+  vertex.label = NA,
+  vertex.color = "skyblue3",
+  vertex.frame.color = NA,
+  edge.color = adjustcolor("black", alpha.f = 0.1),
+  edge.width = 0.4,
+  asp = 0
+)
+
+## match birth clan to graph nodes
+V(net5_lh_gr)$birth_clan <- lifehistory_clanIDs2$birth_clan[
+  match(V(net5_lh_gr)$name, lifehistory_clanIDs2$ID)
+]
+
+## get clans
+clans <- sort(unique(na.omit(V(net5_lh_gr)$birth_clan)))
+
+## create colour palette
+oCols<-c("royalblue","gold","darkcyan","tomato2","chartreuse3","gray15","grey60","mediumorchid3","darkorange")
+oCols<-adjustcolor(oCols,alpha.f=0.75)
+
+## name colours by clan
+names(oCols) <- clans
+
+## assign vertex colours
+V(net5_lh_gr)$color <- oCols[V(net5_lh_gr)$birth_clan]
+
+l2 <- layout_with_fr(net5_lh_gr)
+
+plot(
+  net5_lh_gr,
+  layout = l2,
+  vertex.size = 2.5,
+  vertex.label = NA,
+  vertex.color = V(net5_lh_gr)$color,
+  vertex.frame.color = NA,
+  edge.color = adjustcolor("black", alpha.f = 0.08),
+  edge.width = 0.3,
+  asp = 0)
+
+legend(
+  "topleft",
+  legend = clans,
+  col = oCols,
+  pch = 19,
+  pt.cex = 1.5,
+  bty = "n",
+  cex = 0.7,
+  title = "Birth clan"
+)
+
+## Pull clans to a common centre on graph
+## clan labels
+clan <- V(net5_lh_gr)$birth_clan
+## calculate clan centres
+clan_centres <- aggregate(
+  l2,
+  by = list(clan = clan),
+  FUN = mean
+)
+
+colnames(clan_centres)[2:3] <- c("x", "y")
+
+## global centre
+global_centre <- colMeans(l2)
+
+## pull factor
+pull_strength <- 0.3
+
+## shifted layout
+l_pulled <- l2
+
+for(i in seq_len(nrow(l_pulled))) {
+  
+  this_clan <- clan[i]
+  
+  clan_centre <- as.numeric(
+    clan_centres[clan_centres$clan == this_clan, c("x", "y")]
+  )
+  
+  direction <- clan_centre - global_centre
+  
+  l_pulled[i, ] <- l[i, ] + pull_strength * direction
+}
+
+## plot
+pdf("tables_figures/Fig1A.pdf")
+plot(net5_lh_gr,
+  layout = l_pulled,
+  vertex.size = 2.5,
+  vertex.label = NA,
+  vertex.color = V(net5_lh_gr)$color,
+  vertex.frame.color = NA,
+  edge.color = adjustcolor("gray25", alpha.f = 0.02),
+  edge.width = 0.25,
+  asp = 0)
+
+legend("topright",
+  legend = clans,
+  col = oCols,
+  pch = 19,
+  pt.cex = 1.5,
+  bty = "n",
+  cex = 0.7,
+  title = "Birth clan")
+
+dev.off()
+
+
+## plot relationship between each matrix
+sri_lh<-SRI[rownames(SRI)%in%lifehistory_clanIDs2$ID,colnames(SRI)%in%lifehistory_clanIDs2$ID]
+diag(sri_lh)<-NA 
+
+Amat<-as.matrix(nadiv::makeA(pedH))
+Amat_lh<-Amat[rownames(net5_lh),colnames(net5_lh)]
+identical(rownames(Amat_lh),rownames(sri_lh))
+diag(Amat_lh)<-NA 
+
+hro_VI2_lh<-as.matrix(hro_VI2[rownames(sri_lh),colnames(sri_lh)])
+diag(hro_VI2_lh)<-NA
+
+mat_df<-data.frame(pair=names(gdata::unmatrix(hro_VI2_lh)),
+                   net=as.vector(sri_lh),
+                   hro=as.vector(hro_VI2_lh),
+                   r=as.vector(Amat_lh))
+
+mat_df$sex_class<-paste0(fetch_id_sex(sapply(strsplit(mat_df$pair,":"),"[",1)),"_",
+                  fetch_id_sex(sapply(strsplit(mat_df$pair,":"),"[",2)))
+mat_df[mat_df$sex_class=="male_female",]$sex_class<-"female_male"
+mat_df<-na.omit(mat_df)
+
+sCols<-c("magenta4","forestgreen","cornflowerblue")
+
+## 
+pdf("tables_figures/Fig1B.pdf",width=9)
+ggplot(mat_df,aes(x=hro,y=net,colour=sex_class))+
+  geom_point(alpha=1/5)+
+  theme_classic()+
+  xlab("\nHRO") +
+  ylab("Association strength\n")+
+  scale_colour_manual(name="Sex",values=sCols)+
+  theme(text=element_text(size=14),
+        legend.justification = c("right", "top"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6))
+dev.off()
+  
+pdf("tables_figures/Fig1C.pdf",width=9)
+ggplot(mat_df,aes(x=r,y=net,colour=sex_class))+
+  geom_point(alpha=1/5)+
+  theme_classic()+
+  xlab("\nRelatedness") +
+  ylab("Association strength\n")+
+  scale_colour_manual(name="Sex",values=sCols)+
+  theme(text=element_text(size=14),
+        legend.justification = c("right", "top"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6))
+dev.off()
+
+pdf("tables_figures/Fig1C.pdf",width=9)
+ggplot(mat_df,aes(x=r,y=hro,colour=sex_class))+
+  geom_point(alpha=1/5)+
+  theme_classic()+
+  xlab("\nRelatedness") +
+  ylab("HRO\n")+
+  scale_colour_manual(name="Sex",values=sCols)+
+  theme(text=element_text(size=14),
+        legend.justification = c("right", "top"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6))
+dev.off()
+  
