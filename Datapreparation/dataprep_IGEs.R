@@ -466,9 +466,9 @@ mat_df<-na.omit(mat_df)
 sCols<-c("magenta4","forestgreen","cornflowerblue")
 
 ## 
-pdf("tables_figures/Fig1B.pdf",width=9)
+pdf("tables_figures/Fig1B.pdf",width=11)
 ggplot(mat_df,aes(x=hro,y=net,colour=sex_class))+
-  geom_point(alpha=1/5)+
+  geom_point(alpha=1/4)+
   theme_classic()+
   xlab("\nHRO") +
   ylab("Association strength\n")+
@@ -479,9 +479,9 @@ ggplot(mat_df,aes(x=hro,y=net,colour=sex_class))+
         legend.margin = margin(6, 6, 6, 6))
 dev.off()
   
-pdf("tables_figures/Fig1C.pdf",width=9)
+pdf("tables_figures/Fig1C.pdf",width=11)
 ggplot(mat_df,aes(x=r,y=net,colour=sex_class))+
-  geom_point(alpha=1/5)+
+  geom_point(alpha=1/4)+
   theme_classic()+
   xlab("\nRelatedness") +
   ylab("Association strength\n")+
@@ -492,9 +492,9 @@ ggplot(mat_df,aes(x=r,y=net,colour=sex_class))+
         legend.margin = margin(6, 6, 6, 6))
 dev.off()
 
-pdf("tables_figures/Fig1C.pdf",width=9)
+pdf("tables_figures/Fig1D.pdf",width=11)
 ggplot(mat_df,aes(x=r,y=hro,colour=sex_class))+
-  geom_point(alpha=1/5)+
+  geom_point(alpha=1/4)+
   theme_classic()+
   xlab("\nRelatedness") +
   ylab("HRO\n")+
