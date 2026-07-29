@@ -466,7 +466,7 @@ mat_df<-na.omit(mat_df)
 sCols<-c("magenta4","forestgreen","cornflowerblue")
 
 ## 
-pdf("tables_figures/Fig1B.pdf",width=11)
+pdf("tables_figures/Fig1B.pdf",width=9)
 ggplot(mat_df,aes(x=hro,y=net,colour=sex_class))+
   geom_point(alpha=1/4)+
   theme_classic()+
@@ -474,12 +474,13 @@ ggplot(mat_df,aes(x=hro,y=net,colour=sex_class))+
   ylab("Association strength\n")+
   scale_colour_manual(name="Sex",values=sCols)+
   theme(text=element_text(size=14),
+        legend.title.align=0.5,
         legend.justification = c("right", "top"),
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6))
 dev.off()
   
-pdf("tables_figures/Fig1C.pdf",width=11)
+pdf("tables_figures/Fig1C.pdf",width=9)
 ggplot(mat_df,aes(x=r,y=net,colour=sex_class))+
   geom_point(alpha=1/4)+
   theme_classic()+
@@ -487,12 +488,13 @@ ggplot(mat_df,aes(x=r,y=net,colour=sex_class))+
   ylab("Association strength\n")+
   scale_colour_manual(name="Sex",values=sCols)+
   theme(text=element_text(size=14),
+        legend.title.align=0.5,
         legend.justification = c("right", "top"),
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6))
 dev.off()
 
-pdf("tables_figures/Fig1D.pdf",width=11)
+pdf("tables_figures/Fig1D.pdf",width=9)
 ggplot(mat_df,aes(x=r,y=hro,colour=sex_class))+
   geom_point(alpha=1/4)+
   theme_classic()+
@@ -500,6 +502,7 @@ ggplot(mat_df,aes(x=r,y=hro,colour=sex_class))+
   ylab("HRO\n")+
   scale_colour_manual(name="Sex",values=sCols)+
   theme(text=element_text(size=14),
+        legend.title.align=0.5,
         legend.justification = c("right", "top"),
         legend.box.just = "right",
         legend.margin = margin(6, 6, 6, 6))
