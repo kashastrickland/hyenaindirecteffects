@@ -53,7 +53,7 @@ pars<-c("(Intercept)","sexmale","mother_rank_ord","clan_size","f","X","var_mothe
 
 CI_sims<-list()
 for (i in 1:length(IGE_sim_files)){
-  sim_list<-readRDS(paste0("sim_fits_full/",IGE_sim_files[[i]]))
+  sim_list<-readRDS(IGE_sim_files[[i]])
   sim_fit<-sim_list$fit
   names(sim_fit)[1:6]<-pars[1:6]
   CI <- as.data.frame(t(sapply(pars, function(x) {
