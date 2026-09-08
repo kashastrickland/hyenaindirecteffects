@@ -227,5 +227,80 @@ colnames(tab1)<-c("Parameter","VA only","Social similarity","Indirect effects","
 
 write.csv(tab1,file="./tables_figures/table1.csv",row.names = FALSE)
 
+##convert random effect estimates to observed scale
+
+add_obs_variances <- function(dat) {
+  
+  var_cols <- grep("^var_", names(dat), value = TRUE)
+  
+  # Total latent-scale phenotypic variance
+  dat$Vp <- rowSums(dat[, var_cols, drop = FALSE])
+  
+  # Transform each random-effect variance to the observed scale
+  for (v in var_cols) {
+    
+    obs_name <- paste0(
+      "V", sub("^var_", "", v), "obs"
+    )
+    
+    dat[[obs_name]] <- mapply(
+      function(mu, var, Vp, theta) {
+        QGparams(
+          mu = mu,
+          var.a = var,
+          var.p = Vp,
+          model = "negbin.log",
+          theta = theta
+        )$var.a.obs
+      },
+      mu = dat$mu,
+      var = dat[[v]],
+      Vp = dat$Vp,
+      theta = dat$theta
+    )
+  }
+  
+  dat
+}
+
+md_vars_lst <- lapply(md_vars_lst, add_obs_variances)
+
+all_effects <- unique(unlist(lapply(md_vars_lst, function(x) {
+  sub("^V(.*)obs$", "\\1", grep("^V.*obs$", names(x), value = TRUE))
+})))
+
+obs_var_table <- sapply(seq_along(md_vars_lst), function(i) {
+  sapply(all_effects, function(effect) {
+    
+    col <- paste0("V", effect, "obs")
+    
+    if (col %in% names(md_vars_lst[[i]])) {
+      x <- md_vars_lst[[i]][[col]]
+      q <- quantile(x, c(0.025, 0.5, 0.975), na.rm = TRUE)
+      
+      sprintf("%.3f (%.3f, %.3f)", q[2], q[1], q[3])
+    } else {
+      NA_character_
+    }
+  })
+})
+
+obs_var_table <- as.data.frame(obs_var_table)
+rownames(obs_var_table) <- all_effects
+colnames(obs_var_table) <- names(md_vars_lst)
+
+row_order <- c("animal","mother","clan","by","hro","ss","indirect","indirectE","IGE")
+
+row_names <- c("VA","VM","VClan","VCohort","VHRO","VSS","VIE","VIEE","VIGE")
+
+obs_var_table <- obs_var_table[row_order, , drop = FALSE]
+rownames(obs_var_table) <- row_names
+
+obs_var_table <- obs_var_table[, c("mod_stan_NB_Va","mod_stan_NB_Vahrosocsim","mod_stan_NB_VaIEHRO",
+"mod_stan_IGE_NB_VA_fullIGE")]
+
+colnames(obs_var_table) <- c("Baseline","Social similarity","Indirect effects","IGE")
+
+write.csv(obs_var_table,file="./tables_figures/table2.csv")
 
   
