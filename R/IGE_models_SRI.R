@@ -181,8 +181,8 @@ ggplot(subset_mods,aes(y=variable,x = sd,colour =model)) +
   #facet_grid(~model)+
   scale_color_manual(name="Model",breaks = c("mod_stan_NB_Va","mod_stan_NB_Vahrosocsim",
                                              "mod_stan_NB_VaIEHRO","mod_stan_IGE_NB_VA_fullIGE"),
-                   labels=c("Additive genetic","Social similarity","IE","Full IGE"),values=p_colors)+
-  scale_y_discrete(labels=c("Indirect genetic","Indirect environment","Indirect effects (total)","Social covariance","Shared environment",
+                   labels=c("Baseline","Social similarity","IE","Full IGE"),values=p_colors)+
+  scale_y_discrete(labels=c("Indirect genetic","Indirect environment","Indirect effects (total)","Social similarity","Shared environment",
                             "Cohort","Clan","Maternal","Additive genetic"))+
   ylab("")+
   xlab(expression(V^~~~LRS))+
@@ -222,7 +222,7 @@ pars_df %>%
   bind_rows(.id = 'row.names') %>%
   spread(row.names, tab) -> tab1
 
-tab1<-tab1[c(1:5,16,7:9,14,10,15,12,13,11),c(1,3,4,5,2)]
+tab1<-tab1[c(1:6,16,7:9,14,10,15,12,13,11),c(1,3,4,5,2)]
 colnames(tab1)<-c("Parameter","VA only","Social similarity","Indirect effects","Indirect Genetic Effects")
 
 write.csv(tab1,file="./tables_figures/table1.csv",row.names = FALSE)
