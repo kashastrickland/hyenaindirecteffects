@@ -3,8 +3,8 @@
 ## Import data
 ## ------------------------------------------------------------
 
-data <- read.csv("data/lifehistory_clans.csv", stringsAsFactors = FALSE)
-ped  <- read.csv("data/hyenapedigree.csv", stringsAsFactors = FALSE,row.names = 1)
+data <- read.csv("data/lifehistory_clans_anon.csv", stringsAsFactors = FALSE)
+ped  <- read.csv("data/hyenapedigree_anon.csv", stringsAsFactors = FALSE,row.names = 1)
 
 ## Make sure IDs are character
 data$ID     <- as.character(data$ID)
@@ -18,7 +18,7 @@ ped$sire <- as.character(ped$sire)
 ## Load social network
 ## ------------------------------------------------------------
 
-social <- as.matrix(read.csv("data/SRI_temporal_5.csv", row.names = 1))
+social <- as.matrix(read.csv("data/SRI_temporal_5_anon.csv", row.names = 1))
 colnames(social) <- rownames(social)
 
 ## Ensure names are character
@@ -32,7 +32,7 @@ diag(social) <- 0
 ## Load social similarity matrix
 ## ------------------------------------------------------------
 
-load("data/SRItmp_sim.jac.R")
+load("data/SRItmp_sim_jac_anon.R")
 
 ## Assuming the loaded object is called SRItmp_sim.jac
 socsim <- SRItmp_sim.jac
@@ -44,7 +44,7 @@ colnames(socsim) <- as.character(colnames(socsim))
 ## Load spatial overlap matrix
 ## ------------------------------------------------------------
 
-hro <- as.matrix(read.csv("data/hro_VI_5.csv", row.names = 1))
+hro <- as.matrix(read.csv("data/hro_VI_5_anon.csv", row.names = 1))
 colnames(hro) <- rownames(hro)
 
 rownames(hro) <- as.character(rownames(hro))
