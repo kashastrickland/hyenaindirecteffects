@@ -4,4 +4,4 @@ The extracted life history data derived from the full hyena database is found in
 
 All data have been anonymised with random ID names for publication and so will not correspond directly with the hyena database.
 
-In the folder _R_ is the main code for running all models. "IGE_models_SRR.R" calls "prepare_standata.R" directly to prep data for stan models, which are in the folder _stan_. 
+In the folder _R_ is the main code for running all models. "IGE_models_SRI.R" calls "prepare_standata.R" directly to prep data for stan models, which are in the folder _stan_. 
